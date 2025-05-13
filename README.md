@@ -32,7 +32,7 @@ pip install -r requirements.txt
     │   ├── api/
     |   ├── core/
     │   └── services/
-    ├          ├── db/
+    │          ├── db/
     │              ├── db_functions.py
 ```
 

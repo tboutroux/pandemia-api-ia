@@ -29,11 +29,14 @@ pip install -r requirements.txt
     ├── .env
     ├── app/
     │   ├── main.py
-    │   ├── api/
-    |   ├── core/
-    │   └── services/
-    │          ├── db/
-    │              ├── db_functions.py
+    │   ├── routers/
+    │   │   ├── prediction.py
+    |   ├── ai/
+    │   │   ├── data_processing.py
+    │   │   ├── database.py
+    │   │   ├── model.py
+    │   │   ├── vizualisation.py
+
 ```
 
 ## Exemple de .env

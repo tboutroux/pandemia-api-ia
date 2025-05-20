@@ -1,9 +1,14 @@
 import os
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from app.ai.database import create_db_engine, load_data
 from app.ai.data_processing import create_features
 from app.ai.model import PandemicModel
 from app.ai.visualization import plot_predictions
+from dotenv import load_dotenv
+import numpy as np
+
+# Charger les variables d'environnement depuis le fichier .env
+load_dotenv()
 
 router = APIRouter(
     prefix="/api/v1",
@@ -29,10 +34,10 @@ def predict(country_name: str = "France", target: str = "new_cases", days_ahead:
 
     try:
         # Configuration de la base de données
-        DB_USER = os.environ.get("DB_USER")
-        DB_PASSWORD = os.environ.get("DB_PASSWORD")
-        DB_HOST = os.environ.get("DB_HOST")
-        DB_NAME = os.environ.get("DB_NAME")
+        DB_USER = os.getenv("DB_USER")
+        DB_PASSWORD = os.getenv("DB_PASSWORD")
+        DB_HOST = os.getenv("DB_HOST")
+        DB_NAME = os.getenv("DB_NAME")
 
         # Vérification des variables d'environnement
         if not all([DB_USER, DB_PASSWORD, DB_HOST, DB_NAME]):
@@ -56,13 +61,18 @@ def predict(country_name: str = "France", target: str = "new_cases", days_ahead:
         # Enregistrement du graphique
         plot_predictions(df, predictions, target, country_name)
 
+        # Conversion des prédictions en liste
+        predictions = predictions.to_dict(orient="records")
+
+        predictions = {i: pred for i, pred in enumerate(predictions)}
+
         # Retourne les prédictions sous forme de liste (ou adapter selon besoin)
         return {
             "country": country_name,
             "target": target,
             "days_ahead": days_ahead,
-            "predictions": predictions.tolist() if hasattr(predictions, "tolist") else predictions
+            "predictions": predictions
         }
 
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))

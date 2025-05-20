@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class PandemicModel:
-    def __init__(self, model_dir="models"):
+    def __init__(self, model_dir="app/ai/models"):
         self.models = {}
         self.model_dir = model_dir
 

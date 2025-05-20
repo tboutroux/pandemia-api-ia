@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import os
 
-def plot_predictions(df, preds, target, country_name, output_dir="visualization"):
+def plot_predictions(df, preds, target, country_name, output_dir="app/ai/visualization"):
     """
     Enregistre un graphique comparant les données historiques et les prédictions dans un fichier.
 

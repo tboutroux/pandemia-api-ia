@@ -45,4 +45,7 @@ DB_HOST=your_db_host
 DB_USER=your_db_user
 DB_PASSWORD=your_user_password
 DB_NAME=your_db_name
+
+API_KEY=your_api_key
+API_KEY_NAME=access_token
 ```

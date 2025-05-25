@@ -1,7 +1,8 @@
 # app/main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import prediction
+from app.core.security import get_api_key
 
 
 app = FastAPI(title="Pandemia API IA", version="1.0.0")
@@ -26,4 +27,15 @@ def root():
 
 @app.get("/health")
 def health_check():
+    """
+    Route de vérification de l'état de l'API.
+
+    - **returns**: Un dictionnaire indiquant que l'API est opérationnelle.
+    - **example**:
+    ```json
+    {
+        "status": "ok"
+    }
+    ```
+    """
     return {"status": "ok"}

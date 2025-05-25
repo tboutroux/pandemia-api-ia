@@ -19,7 +19,6 @@ router = APIRouter(
     tags=["Prediction"],
 )
 
-
 @router.get("/predict")
 def predict(
     country_name: str = "France",

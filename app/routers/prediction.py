@@ -6,6 +6,10 @@ from app.ai.model import PandemicModel
 from app.ai.visualization import plot_predictions
 from dotenv import load_dotenv
 import numpy as np
+from fastapi import Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.core.security import verify_token, security
+from app.config.settings import DB_USER, DB_PASSWORD, DB_HOST, DB_NAME
 
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
@@ -17,28 +21,36 @@ router = APIRouter(
 
 
 @router.get("/predict")
-def predict(country_name: str = "France", target: str = "new_cases", days_ahead: int = 7):
+def predict(
+    country_name: str = "France",
+    target: str = "new_cases",
+    days_ahead: int = 7,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    verify_token(credentials)
     """
-    Ce projet implémente une IA pour prédire l'évolution des cas ou des décès liés à une maladie dans un pays donné.
-    L'objectif principal est de fournir des prédictions basées sur des données historiques, en utilisant des modèles
-    d'apprentissage automatique (XGBoost). Les étapes incluent :
-
-    1. Chargement des données depuis une base de données MySQL.
-    2. Préparation des données avec des features temporelles (décalages, moyennes mobiles, etc.).
-    3. Entraînement d'un modèle de prédiction pour estimer les valeurs futures.
-    4. Génération de graphiques comparant les données historiques et les prédictions.
-
-    Ce système peut être utilisé pour anticiper les tendances et aider à la prise de décision dans des contextes
-    sanitaires ou épidémiologiques.
+    Route pour prédire les cas de pandémie pour un pays donné.
+    - **country_name**: Nom du pays pour lequel faire la prédiction (par défaut "France").
+    - **target**: La cible de la prédiction, par exemple "new_cases" ou "new_deaths".
+    - **days_ahead**: Nombre de jours pour lesquels faire la prédiction (par défaut 7).
+    - **credentials**: Clé API pour sécuriser l'accès à la route.
+    - **returns**: Un dictionnaire contenant les prédictions pour le pays et la cible spécifiés.
+    - **raises**: HTTPException en cas d'erreur lors de la prédiction ou de la configuration de la base de données.
+    - **example**:
+    ```json
+    {
+        "country": "France",
+        "target": "new_cases",
+        "days_ahead": 7,
+        "predictions": {
+            "0": {"date": "2023-10-01", "prediction": 100},
+            "1": {"date": "2023-10-02", "prediction": 120},
+            ...
+        }
+    }
     """
 
     try:
-        # Configuration de la base de données
-        DB_USER = os.getenv("DB_USER")
-        DB_PASSWORD = os.getenv("DB_PASSWORD")
-        DB_HOST = os.getenv("DB_HOST")
-        DB_NAME = os.getenv("DB_NAME")
-
         # Vérification des variables d'environnement
         if not all([DB_USER, DB_PASSWORD, DB_HOST, DB_NAME]):
             raise ValueError("Les variables d'environnement de la base de données ne sont pas correctement configurées.")

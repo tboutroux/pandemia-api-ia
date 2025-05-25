@@ -23,20 +23,35 @@ pip install -r requirements.txt
 
 ## Architecture du projet 
 ```
-└── tboutroux/pandemia-api-ia/
+Directory structure:
+└── tboutroux-pandemia-api-ia/
     ├── README.md
+    ├── LICENSE
     ├── requirements.txt
+    ├── .flake8
     ├── .env
     ├── app/
     │   ├── main.py
-    │   ├── routers/
-    │   │   ├── prediction.py
-    |   ├── ai/
+    │   ├── ai/
     │   │   ├── data_processing.py
     │   │   ├── database.py
     │   │   ├── model.py
-    │   │   ├── vizualisation.py
-
+    │   │   ├── visualization.py
+    │   │   ├── models/
+    │   │   │   └── new_cases_model.pkl
+    │   │   └── visualization/
+    │   ├── config/
+    │   │   └── settings.py
+    │   ├── core/
+    │   │   └── security.py
+    │   └── routers/
+    │       └── prediction.py
+    ├── test/
+    │   ├── test_integration.py
+    │   └── test_unit.py
+    └── .github/
+        └── workflows/
+            └── ci.yml
 ```
 
 ## Exemple de .env

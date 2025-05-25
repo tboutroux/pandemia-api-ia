@@ -2,7 +2,11 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import prediction
-from app.core.security import get_api_key
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.core.security import verify_token
+from fastapi.security import HTTPAuthorizationCredentials
+from app.core.security import security
+
 
 
 app = FastAPI(title="Pandemia API IA", version="1.0.0")
@@ -39,3 +43,18 @@ def health_check():
     ```
     """
     return {"status": "ok"}
+
+
+@app.get("/connect/test")
+def test_connection(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """
+    Route pour tester la connexion à la base de données.
+    - **credentials**: Clé API pour sécuriser l'accès à la route.
+    - **returns**: Un message de succès si la connexion est établie.
+    - **raises**: HTTPException en cas d'erreur de connexion ou de configuration de la base de données.
+    """
+    verify_token(credentials)
+
+    return {"message": "Connexion réussie"}

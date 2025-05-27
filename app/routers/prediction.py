@@ -58,16 +58,27 @@ def predict(
         engine = create_db_engine(DB_USER, DB_PASSWORD, DB_HOST, DB_NAME)
 
         # Chargement des données
-        df = load_data(engine, country_name)
+        df = load_data(engine, country_name, targets=[target])
 
-        # Création des features
-        df = create_features(df, target)
+        # Création des features pour chaque cible
+        df_features = create_features(df.copy(), target, look_back=30, 
+                                    use_lags=True, use_rolling=True, use_calendar=True)
+
+        feature_names = [col for col in df_features.columns 
+            if col.startswith('lag_') or 
+            col.startswith('rolling_') or 
+            col in ['day_of_week', 'day_of_month', 'month', 
+                    'cases_per_100k', 'deaths_per_100k', 'recovered_per_100k']
+            and col in df_features.columns]
 
         # Initialisation du gestionnaire de modèles
         model_manager = PandemicModel()
 
         # Prédictions futures
-        predictions = model_manager.predict_future(df, target, days_ahead=days_ahead)
+        predictions = model_manager.predict_future(
+            df_features, target, feature_names=feature_names, 
+            days_ahead=days_ahead
+        )
 
         # Enregistrement du graphique
         plot_predictions(df, predictions, target, country_name)

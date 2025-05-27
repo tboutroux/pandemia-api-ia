@@ -21,33 +21,63 @@ def create_db_engine(user: str, password: str, host: str, database: str):
     return create_engine(connection_string)
 
 
-def load_data(engine, country_name: str) -> pd.DataFrame:
+def load_data(engine, country_name: str, targets: list = None) -> pd.DataFrame:
     """
     Fonction pour charger les données d'un pays spécifique depuis la base de données.
 
     Args:
         engine (sqlalchemy.engine.base.Engine): Moteur SQLAlchemy pour la connexion à la base de données.
         country_name (str): Nom du pays pour lequel charger les données.
+        targets (list): Liste des colonnes à récupérer (new_cases, new_deaths, new_recovered)
 
     Returns:
         df (pd.DataFrame): DataFrame contenant les données du pays spécifié.
     """
-    query = """
+    # Définir les targets par défaut si non spécifiées
+    if targets is None:
+        targets = ["new_cases", "new_deaths", "new_recovered"]
+    
+    # Vérifier que les targets sont valides
+    valid_targets = ["new_cases", "new_deaths", "new_recovered"]
+    for target in targets:
+        if target not in valid_targets:
+            raise ValueError(f"Target '{target}' invalide. Les targets valides sont: {valid_targets}")
+
+    # Construire la requête dynamiquement
+    select_columns = ["gd.date", "c.population"]
+    
+    if "new_cases" in targets:
+        select_columns.append("gd.new_cases")
+    if "new_deaths" in targets:
+        select_columns.append("gd.new_deaths")
+    if "new_recovered" in targets:
+        select_columns.append("gd.new_recovered")
+    
+    query = f"""
     SELECT 
-        gd.date, 
-        gd.new_cases, 
-        gd.new_deaths,
-        c.population
+        {', '.join(select_columns)}
     FROM Global_Data gd
     JOIN Country c ON gd.country_id = c.id
     WHERE c.name = %s
     AND gd.date IS NOT NULL
-    AND gd.new_cases IS NOT NULL
-    AND gd.new_deaths IS NOT NULL
-    ORDER BY gd.date
     """
+    
+    # Ajouter les conditions NOT NULL pour les colonnes sélectionnées
+    conditions = []
+    if "new_cases" in targets:
+        conditions.append("gd.new_cases IS NOT NULL")
+    if "new_deaths" in targets:
+        conditions.append("gd.new_deaths IS NOT NULL")
+    if "new_recovered" in targets:
+        conditions.append("gd.new_recovered IS NOT NULL")
+    
+    if conditions:
+        query += " AND " + " AND ".join(conditions)
+    
+    query += " ORDER BY gd.date"
+
     try:
-        logger.debug(f"Exécution de la requête SQL pour {country_name}.")
+        logger.debug(f"Exécution de la requête SQL pour {country_name} avec targets: {targets}")
         df = pd.read_sql(query, engine, params=(country_name,))
         if df.empty:
             logger.warning(f"Aucune donnée trouvée pour {country_name}.")

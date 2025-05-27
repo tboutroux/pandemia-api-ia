@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import os
 import numpy as np
+import pandas as pd
 
 def ensure_dir_exists(output_dir):
     """Vérifie si le répertoire de sortie existe, sinon le crée."""
@@ -11,6 +12,11 @@ def plot_predictions(df, preds, target, country_name, output_dir="visualization"
     """Enregistre un graphique comparant les données historiques et les prédictions."""
     ensure_dir_exists(output_dir)
     plt.figure(figsize=(12, 6))
+    
+    # Convertir les index en datetime si nécessaire
+    df.index = pd.to_datetime(df.index)
+    preds.index = pd.to_datetime(preds.index)
+    
     plt.plot(df.index, df[target], label='Données historiques', color='blue')
     
     last_date = df.index[-1]

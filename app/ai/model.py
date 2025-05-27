@@ -1,6 +1,5 @@
 from sklearn.model_selection import train_test_split, TimeSeriesSplit, GridSearchCV
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from datetime import timedelta
 import logging
 import numpy as np
 import joblib
@@ -127,11 +126,11 @@ class PandemicModel:
         last_data = df.iloc[-1:].copy()
         
         for i in range(1, days_ahead + 1):
-            current_date = current_date + timedelta(days=1)
+            current_date = current_date + pd.Timedelta(days=1)  # Utiliser pd.Timedelta
             X_pred = last_data[feature_names]
             pred = model.predict(X_pred)[0]
             predictions.append({
-                'date': current_date,
+                'date': current_date.to_pydatetime(),  # Convertir explicitement en datetime
                 f'predicted_{target}': pred
             })
             
@@ -152,7 +151,8 @@ class PandemicModel:
             new_row.index = [current_date]
             last_data = pd.concat([last_data, new_row]).iloc[1:]
         
-        return pd.DataFrame(predictions).set_index('date')
+        result_df = pd.DataFrame(predictions).set_index('date')
+        return result_df
 
     def predict_multiple_targets(self, df, targets=None, feature_names=None, days_ahead=7, look_back=30):
         """

@@ -59,7 +59,12 @@ def mock_credentials():
 @patch('app.routers.prediction.visualize_all_results')
 @patch('app.routers.prediction.os.path.exists')
 @patch('app.routers.prediction.pd.DataFrame.to_csv')
-def test_predict_basic(mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
+@patch('app.routers.prediction.DB_USER', "user")
+@patch('app.routers.prediction.DB_PASSWORD', "password")
+@patch('app.routers.prediction.DB_HOST', "localhost")
+@patch('app.routers.prediction.DB_NAME', "dbname")
+def test_predict_basic(mock_db_name, mock_db_host, mock_db_password, mock_db_user,
+                      mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
                       mock_create_features, mock_load_data, mock_create_db_engine, 
                       country, days, mock_df, mock_df_features, mock_predictions_all, mock_credentials):
     mock_exists.return_value = True
@@ -94,9 +99,14 @@ def test_predict_basic(mock_to_csv, mock_exists, mock_visualize, mock_model_clas
 @patch('app.routers.prediction.visualize_all_results')
 @patch('app.routers.prediction.os.path.exists')
 @patch('app.routers.prediction.pd.DataFrame.to_csv')
-def test_predict_with_custom_targets(mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
-                                   mock_create_features, mock_load_data, mock_create_db_engine, 
-                                   mock_df, mock_df_features, mock_predictions_all, mock_credentials):
+@patch('app.routers.prediction.DB_USER', "user")
+@patch('app.routers.prediction.DB_PASSWORD', "password")
+@patch('app.routers.prediction.DB_HOST', "localhost")
+@patch('app.routers.prediction.DB_NAME', "dbname")
+def test_predict_with_custom_targets(mock_db_name, mock_db_host, mock_db_password, mock_db_user,
+                                    mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
+                                    mock_create_features, mock_load_data, mock_create_db_engine, 
+                                    mock_df, mock_df_features, mock_predictions_all, mock_credentials):
     mock_exists.return_value = True
     mock_create_db_engine.return_value = "mock_engine"
     mock_load_data.return_value = mock_df
@@ -138,9 +148,14 @@ def test_predict_with_custom_targets(mock_to_csv, mock_exists, mock_visualize, m
 @patch('app.routers.prediction.visualize_all_results')
 @patch('app.routers.prediction.os.path.exists')
 @patch('app.routers.prediction.pd.DataFrame.to_csv')
-def test_predict_no_train(mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
-                        mock_create_features, mock_load_data, mock_create_db_engine, 
-                        mock_df, mock_df_features, mock_predictions_all, mock_credentials):
+@patch('app.routers.prediction.DB_USER', "user")
+@patch('app.routers.prediction.DB_PASSWORD', "password")
+@patch('app.routers.prediction.DB_HOST', "localhost")
+@patch('app.routers.prediction.DB_NAME', "dbname")
+def test_predict_no_train(mock_db_name, mock_db_host, mock_db_password, mock_db_user,
+                         mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
+                         mock_create_features, mock_load_data, mock_create_db_engine, 
+                         mock_df, mock_df_features, mock_predictions_all, mock_credentials):
     mock_exists.return_value = True
     mock_create_db_engine.return_value = "mock_engine"
     mock_load_data.return_value = mock_df
@@ -171,9 +186,14 @@ def test_predict_no_train(mock_to_csv, mock_exists, mock_visualize, mock_model_c
 @patch('app.routers.prediction.visualize_all_results')
 @patch('app.routers.prediction.os.path.exists')
 @patch('app.routers.prediction.pd.DataFrame.to_csv')
-def test_predict_with_tuning(mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
-                           mock_create_features, mock_load_data, mock_create_db_engine, 
-                           mock_df, mock_df_features, mock_predictions_all, mock_credentials):
+@patch('app.routers.prediction.DB_USER', "user")
+@patch('app.routers.prediction.DB_PASSWORD', "password")
+@patch('app.routers.prediction.DB_HOST', "localhost")
+@patch('app.routers.prediction.DB_NAME', "dbname")
+def test_predict_with_tuning(mock_db_name, mock_db_host, mock_db_password, mock_db_user,
+                            mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
+                            mock_create_features, mock_load_data, mock_create_db_engine, 
+                            mock_df, mock_df_features, mock_predictions_all, mock_credentials):
     mock_exists.return_value = True
     mock_create_db_engine.return_value = "mock_engine"
     mock_load_data.return_value = mock_df
@@ -203,10 +223,15 @@ def test_predict_with_tuning(mock_to_csv, mock_exists, mock_visualize, mock_mode
 @patch('app.routers.prediction.visualize_all_results')
 @patch('app.routers.prediction.os.path.exists')
 @patch('app.routers.prediction.pd.DataFrame.to_csv')
-def test_predict_no_train_model_not_found(mock_to_csv, mock_exists, mock_visualize, 
-                                        mock_model_class, mock_create_features, 
-                                        mock_load_data, mock_create_db_engine, 
-                                        mock_df, mock_df_features, mock_predictions_all, mock_credentials):
+@patch('app.routers.prediction.DB_USER', "user")
+@patch('app.routers.prediction.DB_PASSWORD', "password")
+@patch('app.routers.prediction.DB_HOST', "localhost")
+@patch('app.routers.prediction.DB_NAME', "dbname")
+def test_predict_no_train_model_not_found(mock_db_name, mock_db_host, mock_db_password, mock_db_user,
+                                         mock_to_csv, mock_exists, mock_visualize, 
+                                         mock_model_class, mock_create_features, 
+                                         mock_load_data, mock_create_db_engine, 
+                                         mock_df, mock_df_features, mock_predictions_all, mock_credentials):
     mock_exists.return_value = True
     mock_create_db_engine.return_value = "mock_engine"
     mock_load_data.return_value = mock_df

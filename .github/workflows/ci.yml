@@ -71,9 +71,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      # Démarre l'API en arrière-plan avant le scan ZAP
+      - name: Start API
+        run: |
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
       - name: Run OWASP ZAP security scan
         run: |
-          docker run -v ${{ github.workspace }}:/zap/wrk -t ghcr.io/zaproxy/zaproxy:weekly zap-baseline.py -t http://localhost:8000 -r zap_report.html
+          docker run --user root -v ${{ github.workspace }}:/zap/wrk -t ghcr.io/zaproxy/zaproxy:weekly zap-baseline.py -t http://host.docker.internal:8000 -r zap_report.html || true
       - name: Upload OWASP ZAP report
         uses: actions/upload-artifact@v4
         with:

@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock, Mock
+
 import pandas as pd
 import numpy as np
 from fastapi import HTTPException, Query
@@ -52,20 +53,19 @@ def mock_credentials():
     return MagicMock()
 
 @pytest.mark.parametrize("country,days", [("France", 7), ("Italy", 10)])
-@patch('app.routers.prediction.create_db_engine')
-@patch('app.routers.prediction.load_data')
-@patch('app.routers.prediction.create_features')
-@patch('app.routers.prediction.PandemicModel')
-@patch('app.routers.prediction.visualize_all_results')
-@patch('app.routers.prediction.os.path.exists')
-@patch('app.routers.prediction.pd.DataFrame.to_csv')
-@patch('app.routers.prediction.DB_USER', "user")
-@patch('app.routers.prediction.DB_PASSWORD', "password")
-@patch('app.routers.prediction.DB_HOST', "localhost")
 @patch('app.routers.prediction.DB_NAME', "dbname")
-def test_predict_basic(mock_db_name, mock_db_host, mock_db_password, mock_db_user,
-                      mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
-                      mock_create_features, mock_load_data, mock_create_db_engine, 
+@patch('app.routers.prediction.DB_HOST', "localhost")
+@patch('app.routers.prediction.DB_PASSWORD', "password")
+@patch('app.routers.prediction.DB_USER', "user")
+@patch('app.routers.prediction.pd.DataFrame.to_csv')
+@patch('app.routers.prediction.os.path.exists')
+@patch('app.routers.prediction.visualize_all_results')
+@patch('app.routers.prediction.PandemicModel')
+@patch('app.routers.prediction.create_features')
+@patch('app.routers.prediction.load_data')
+@patch('app.routers.prediction.create_db_engine')
+def test_predict_basic(mock_create_db_engine, mock_load_data, mock_create_features, mock_model_class,
+                      mock_visualize, mock_exists, mock_to_csv, mock_db_user, mock_db_password, mock_db_host, mock_db_name,
                       country, days, mock_df, mock_df_features, mock_predictions_all, mock_credentials):
     mock_exists.return_value = True
     mock_create_db_engine.return_value = "mock_engine"
@@ -92,20 +92,19 @@ def test_predict_basic(mock_db_name, mock_db_host, mock_db_password, mock_db_use
     assert "predictions" in result
     assert "metrics" in result
 
-@patch('app.routers.prediction.create_db_engine')
-@patch('app.routers.prediction.load_data')
-@patch('app.routers.prediction.create_features')
-@patch('app.routers.prediction.PandemicModel')
-@patch('app.routers.prediction.visualize_all_results')
-@patch('app.routers.prediction.os.path.exists')
-@patch('app.routers.prediction.pd.DataFrame.to_csv')
-@patch('app.routers.prediction.DB_USER', "user")
-@patch('app.routers.prediction.DB_PASSWORD', "password")
-@patch('app.routers.prediction.DB_HOST', "localhost")
 @patch('app.routers.prediction.DB_NAME', "dbname")
-def test_predict_with_custom_targets(mock_db_name, mock_db_host, mock_db_password, mock_db_user,
-                                    mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
-                                    mock_create_features, mock_load_data, mock_create_db_engine, 
+@patch('app.routers.prediction.DB_HOST', "localhost")
+@patch('app.routers.prediction.DB_PASSWORD', "password")
+@patch('app.routers.prediction.DB_USER', "user")
+@patch('app.routers.prediction.pd.DataFrame.to_csv')
+@patch('app.routers.prediction.os.path.exists')
+@patch('app.routers.prediction.visualize_all_results')
+@patch('app.routers.prediction.PandemicModel')
+@patch('app.routers.prediction.create_features')
+@patch('app.routers.prediction.load_data')
+@patch('app.routers.prediction.create_db_engine')
+def test_predict_with_custom_targets(mock_create_db_engine, mock_load_data, mock_create_features, mock_model_class,
+                                    mock_visualize, mock_exists, mock_to_csv, mock_db_user, mock_db_password, mock_db_host, mock_db_name,
                                     mock_df, mock_df_features, mock_predictions_all, mock_credentials):
     mock_exists.return_value = True
     mock_create_db_engine.return_value = "mock_engine"
@@ -141,20 +140,19 @@ def test_predict_with_custom_targets(mock_db_name, mock_db_host, mock_db_passwor
     assert "targets" in call_kwargs
     assert call_kwargs["targets"] == ["new_cases", "new_deaths"]
 
-@patch('app.routers.prediction.create_db_engine')
-@patch('app.routers.prediction.load_data')
-@patch('app.routers.prediction.create_features')
-@patch('app.routers.prediction.PandemicModel')
-@patch('app.routers.prediction.visualize_all_results')
-@patch('app.routers.prediction.os.path.exists')
-@patch('app.routers.prediction.pd.DataFrame.to_csv')
-@patch('app.routers.prediction.DB_USER', "user")
-@patch('app.routers.prediction.DB_PASSWORD', "password")
-@patch('app.routers.prediction.DB_HOST', "localhost")
 @patch('app.routers.prediction.DB_NAME', "dbname")
-def test_predict_no_train(mock_db_name, mock_db_host, mock_db_password, mock_db_user,
-                         mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
-                         mock_create_features, mock_load_data, mock_create_db_engine, 
+@patch('app.routers.prediction.DB_HOST', "localhost")
+@patch('app.routers.prediction.DB_PASSWORD', "password")
+@patch('app.routers.prediction.DB_USER', "user")
+@patch('app.routers.prediction.pd.DataFrame.to_csv')
+@patch('app.routers.prediction.os.path.exists')
+@patch('app.routers.prediction.visualize_all_results')
+@patch('app.routers.prediction.PandemicModel')
+@patch('app.routers.prediction.create_features')
+@patch('app.routers.prediction.load_data')
+@patch('app.routers.prediction.create_db_engine')
+def test_predict_no_train(mock_create_db_engine, mock_load_data, mock_create_features, mock_model_class,
+                         mock_visualize, mock_exists, mock_to_csv, mock_db_user, mock_db_password, mock_db_host, mock_db_name,
                          mock_df, mock_df_features, mock_predictions_all, mock_credentials):
     mock_exists.return_value = True
     mock_create_db_engine.return_value = "mock_engine"
@@ -179,20 +177,19 @@ def test_predict_no_train(mock_db_name, mock_db_host, mock_db_password, mock_db_
 
     mock_model.load_model.assert_called()
 
-@patch('app.routers.prediction.create_db_engine')
-@patch('app.routers.prediction.load_data')
-@patch('app.routers.prediction.create_features')
-@patch('app.routers.prediction.PandemicModel')
-@patch('app.routers.prediction.visualize_all_results')
-@patch('app.routers.prediction.os.path.exists')
-@patch('app.routers.prediction.pd.DataFrame.to_csv')
-@patch('app.routers.prediction.DB_USER', "user")
-@patch('app.routers.prediction.DB_PASSWORD', "password")
-@patch('app.routers.prediction.DB_HOST', "localhost")
 @patch('app.routers.prediction.DB_NAME', "dbname")
-def test_predict_with_tuning(mock_db_name, mock_db_host, mock_db_password, mock_db_user,
-                            mock_to_csv, mock_exists, mock_visualize, mock_model_class, 
-                            mock_create_features, mock_load_data, mock_create_db_engine, 
+@patch('app.routers.prediction.DB_HOST', "localhost")
+@patch('app.routers.prediction.DB_PASSWORD', "password")
+@patch('app.routers.prediction.DB_USER', "user")
+@patch('app.routers.prediction.pd.DataFrame.to_csv')
+@patch('app.routers.prediction.os.path.exists')
+@patch('app.routers.prediction.visualize_all_results')
+@patch('app.routers.prediction.PandemicModel')
+@patch('app.routers.prediction.create_features')
+@patch('app.routers.prediction.load_data')
+@patch('app.routers.prediction.create_db_engine')
+def test_predict_with_tuning(mock_create_db_engine, mock_load_data, mock_create_features, mock_model_class,
+                            mock_visualize, mock_exists, mock_to_csv, mock_db_user, mock_db_password, mock_db_host, mock_db_name,
                             mock_df, mock_df_features, mock_predictions_all, mock_credentials):
     mock_exists.return_value = True
     mock_create_db_engine.return_value = "mock_engine"
@@ -216,21 +213,19 @@ def test_predict_with_tuning(mock_db_name, mock_db_host, mock_db_password, mock_
     mock_model.train_model.assert_called()
     assert mock_model.train_model.call_args[1]['tune_hyperparams'] == True
 
-@patch('app.routers.prediction.create_db_engine')
-@patch('app.routers.prediction.load_data')
-@patch('app.routers.prediction.create_features')
-@patch('app.routers.prediction.PandemicModel')
-@patch('app.routers.prediction.visualize_all_results')
-@patch('app.routers.prediction.os.path.exists')
-@patch('app.routers.prediction.pd.DataFrame.to_csv')
-@patch('app.routers.prediction.DB_USER', "user")
-@patch('app.routers.prediction.DB_PASSWORD', "password")
-@patch('app.routers.prediction.DB_HOST', "localhost")
 @patch('app.routers.prediction.DB_NAME', "dbname")
-def test_predict_no_train_model_not_found(mock_db_name, mock_db_host, mock_db_password, mock_db_user,
-                                         mock_to_csv, mock_exists, mock_visualize, 
-                                         mock_model_class, mock_create_features, 
-                                         mock_load_data, mock_create_db_engine, 
+@patch('app.routers.prediction.DB_HOST', "localhost")
+@patch('app.routers.prediction.DB_PASSWORD', "password")
+@patch('app.routers.prediction.DB_USER', "user")
+@patch('app.routers.prediction.pd.DataFrame.to_csv')
+@patch('app.routers.prediction.os.path.exists')
+@patch('app.routers.prediction.visualize_all_results')
+@patch('app.routers.prediction.PandemicModel')
+@patch('app.routers.prediction.create_features')
+@patch('app.routers.prediction.load_data')
+@patch('app.routers.prediction.create_db_engine')
+def test_predict_no_train_model_not_found(mock_create_db_engine, mock_load_data, mock_create_features, mock_model_class,
+                                         mock_visualize, mock_exists, mock_to_csv, mock_db_user, mock_db_password, mock_db_host, mock_db_name,
                                          mock_df, mock_df_features, mock_predictions_all, mock_credentials):
     mock_exists.return_value = True
     mock_create_db_engine.return_value = "mock_engine"

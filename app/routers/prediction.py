@@ -11,6 +11,8 @@ from fastapi.security import HTTPAuthorizationCredentials
 from app.config.settings import DB_USER, DB_PASSWORD, DB_HOST, DB_NAME
 from fastapi import Query
 import pandas as pd
+import mlflow
+import mlflow.sklearn
 
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
@@ -71,85 +73,95 @@ def predict(
         predictions = {}
         metrics = {}
 
-        for target in targets_list:
-            # Vérifier que la colonne cible existe bien dans les données chargées
-            if target not in df.columns:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"La cible '{target}' n'existe pas dans les données chargées."
-                )
-                continue
+        mlflow.set_experiment(f"pandemia-{country}")
+        with mlflow.start_run(run_name=f"{country}-{','.join(targets_list)}-predict", nested=True):
+            mlflow.log_param("country", country)
+            mlflow.log_param("days_ahead", days_ahead)
+            mlflow.log_param("targets", targets_list)
+            mlflow.log_param("no_train", no_train)
+            mlflow.log_param("tune", tune)
 
-            # Création des features pour chaque cible
-            df_features = create_features(df.copy(), target, look_back=30, 
-                                        use_lags=True, use_rolling=True, use_calendar=True)
+            for target in targets_list:
+                # Vérifier que la colonne cible existe bien dans les données chargées
+                if target not in df.columns:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"La cible '{target}' n'existe pas dans les données chargées."
+                    )
+                    continue
 
-            # Définition de la liste des features
-            feature_names = [col for col in df_features.columns 
-                if col.startswith('lag_') or 
-                col.startswith('rolling_') or 
-                col in ['day_of_week', 'day_of_month', 'month', 
-                        'cases_per_100k', 'deaths_per_100k', 'recovered_per_100k']
-                and col in df_features.columns]
+                # Création des features pour chaque cible
+                df_features = create_features(df.copy(), target, look_back=30, 
+                                            use_lags=True, use_rolling=True, use_calendar=True)
 
-            if not no_train:
-                # Entraînement du modèle avec option de tuning
-                model, target_metrics = model_manager.train_model(
-                    df_features, target, feature_names=feature_names, 
-                    tune_hyperparams=tune
-                )
-                # Sauvegarde du modèle
-                model_manager.save_model(model, target)
-                metrics[target] = target_metrics
-            else:
-                # Chargement du modèle existant
-                model = model_manager.load_model(target)
-                if model is None:
+                # Définition de la liste des features
+                feature_names = [col for col in df_features.columns 
+                    if col.startswith('lag_') or 
+                    col.startswith('rolling_') or 
+                    col in ['day_of_week', 'day_of_month', 'month', 
+                            'cases_per_100k', 'deaths_per_100k', 'recovered_per_100k']
+                    and col in df_features.columns]
+
+                mlflow.sklearn.autolog(disable=False, log_models=True)
+                if not no_train:
+                    # Entraînement du modèle avec option de tuning
                     model, target_metrics = model_manager.train_model(
                         df_features, target, feature_names=feature_names, 
                         tune_hyperparams=tune
                     )
                     model_manager.save_model(model, target)
                     metrics[target] = target_metrics
+                    # Log metrics and model in MLflow
+                    for k, v in target_metrics.items():
+                        mlflow.log_metric(f"{target}_{k}", v)
+                    mlflow.sklearn.log_model(model, f"{target}_model")
+                else:
+                    # Chargement du modèle existant
+                    model = model_manager.load_model(target)
+                    if model is None:
+                        model, target_metrics = model_manager.train_model(
+                            df_features, target, feature_names=feature_names, 
+                            tune_hyperparams=tune
+                        )
+                        model_manager.save_model(model, target)
+                        metrics[target] = target_metrics
+                        for k, v in target_metrics.items():
+                            mlflow.log_metric(f"{target}_{k}", v)
+                        mlflow.sklearn.log_model(model, f"{target}_model")
 
-            # Prédictions futures
-            preds = model_manager.predict_future(
-                df_features, target, feature_names=feature_names, 
-                days_ahead=days_ahead
-            )
-            
-            # On clippe les valeurs prédites pour éviter les valeurs négatives
-            preds[f"predicted_{target}"] = preds[f"predicted_{target}"].clip(lower=0)
-            predictions[target] = preds.to_dict(orient="records")
+                # Prédictions futures
+                preds = model_manager.predict_future(
+                    df_features, target, feature_names=feature_names, 
+                    days_ahead=days_ahead
+                )
+                preds[f"predicted_{target}"] = preds[f"predicted_{target}"].clip(lower=0)
+                predictions[target] = preds.to_dict(orient="records")
+                preds_path = f"visualization/{country_name}_{target}_predictions.csv"
+                preds.to_csv(preds_path)
+                mlflow.log_artifact(preds_path)
 
-            # Sauvegarde des prédictions dans un CSV
-            preds.to_csv(f"visualization/{country_name}_{target}_predictions.csv")
-
-        # Génération de toutes les visualisations
-        if predictions: 
-            visualize_all_results(df, {k: pd.DataFrame(v) for k, v in predictions.items()}, country_name)
-            
-            # Sauvegarde des métriques
-            for target, target_metrics in metrics.items():
-                with open(f"visualization/{country_name}_{target}_metrics.txt", "w") as f:
-                    for key, value in target_metrics.items():
-                        f.write(f"{key}: {value}\n")
-
-            # Préparation de la réponse
-            response = {
-                "country": country_name,
-                "days_ahead": days_ahead,
-                "predictions": predictions,
-                "metrics": metrics
-            }
-            
-            return response
-        else:
-            raise HTTPException(
-                status_code=400,
-                detail="Aucune prédiction générée. Vérifiez les données chargées et les targets spécifiées."
-            )
-
+            # Génération de toutes les visualisations
+            if predictions: 
+                visualize_all_results(df, {k: pd.DataFrame(v) for k, v in predictions.items()}, country_name)
+                for target, target_metrics in metrics.items():
+                    metrics_path = f"visualization/{country_name}_{target}_metrics.txt"
+                    with open(metrics_path, "w") as f:
+                        for key, value in target_metrics.items():
+                            f.write(f"{key}: {value}\n")
+                    mlflow.log_artifact(metrics_path)
+                # Préparation de la réponse
+                response = {
+                    "country": country_name,
+                    "days_ahead": days_ahead,
+                    "predictions": predictions,
+                    "metrics": metrics
+                }
+                return response
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Aucune prédiction générée. Vérifiez les données chargées et les targets spécifiées."
+                )
     except Exception as e:
         raise HTTPException(
             status_code=500,

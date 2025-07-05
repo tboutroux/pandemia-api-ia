@@ -14,3 +14,4 @@ PyMySQL==1.1.1
 pytest-asyncio==0.23.6
 flake8==7.0.0
 httpx==0.28.1
+mlflow==3.1.1
